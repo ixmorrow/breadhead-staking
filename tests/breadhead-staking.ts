@@ -139,4 +139,36 @@ describe("breadhead-staking", async() => {
     assert(tokenAccount.owner.toBase58() == provider.wallet.publicKey.toBase58(), 'token account owner does not match')
   })
 
+  it('Unstake nft', async () => {
+    const [stakeEntry, entryBump] = await PublicKey.findProgramAddress(
+      [Buffer.from(STAKE_ENTRY_SEED), stakePool.toBytes(), originalMint.toBuffer(), PublicKey.default.toBuffer()],
+      program.programId
+    )
+
+    const [programAuthority, authBump] = await PublicKey.findProgramAddress(
+      [Buffer.from("authority")],
+      program.programId
+    )
+
+    const userAta = await getAssociatedTokenAddress(originalMint, provider.wallet.publicKey)
+
+    const tx = await program.methods.unstake()
+    .accounts({
+      stakeEntry: stakeEntry,
+      stakePool: stakePool,
+      programAuthority: programAuthority,
+      originalMint: originalMint,
+      masterEdition: metadataInfo[1],
+      user: provider.wallet.publicKey,
+      userOriginalMintTokenAccount: userAta,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      metadataProgram: METADATA_PROGRAM_ID
+    })
+    .rpc()
+
+    const tokenAccount = await getAccount(provider.connection, userAta)
+    assert(!tokenAccount.isFrozen, 'token account is still frozen')
+    assert(tokenAccount.delegate == null, 'delegate does not match')
+    assert(tokenAccount.owner.toBase58() == provider.wallet.publicKey.toBase58(), 'token account owner does not match')
+  })
 })

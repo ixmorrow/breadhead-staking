@@ -26,9 +26,9 @@ pub mod breadhead_staking {
         stake::handler(ctx, amount)
     }
 
-    // pub fn unstake(ctx: Context<UnstakeCtx>) -> Result<()> {
-    //     unstake::handler(ctx)
-    // }
+    pub fn unstake(ctx: Context<UnstakeCtx>) -> Result<()> {
+        unstake::handler(ctx)
+    }
 
     // pub fn update_pool(ctx: Context<UpdatePoolCtx>, ix: UpdatePoolIx) -> Result<()> {
     //     update_pool::handler(ctx, ix)
