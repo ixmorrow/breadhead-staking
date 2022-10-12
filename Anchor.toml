@@ -1,0 +1,15 @@
+[features]
+seeds = false
+[programs.localnet]
+breadhead_staking = "FpEMdUwx8GAE4kc5BXgP5pKwAv7FstakVU6JLRnT5kmH"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "devnet"
+wallet = "/home/ixmorrow/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/*.ts"
+# test = "yarn mocha tests/*.ts"
