@@ -117,6 +117,11 @@ describe("breadhead-staking", async() => {
       program.programId
     )
 
+    const [stakeState, stateBump] = await PublicKey.findProgramAddress(
+      [provider.wallet.publicKey.toBuffer(), originalMint.toBuffer(), Buffer.from("state")],
+      program.programId
+    )
+
     const userAta = await getAssociatedTokenAddress(originalMint, provider.wallet.publicKey)
 
     const tx = await program.methods.stake(new BN(1))
@@ -128,6 +133,7 @@ describe("breadhead-staking", async() => {
       masterEdition: metadataInfo[1],
       user: provider.wallet.publicKey,
       userOriginalMintTokenAccount: userAta,
+      stakeState: stakeState,
       tokenProgram: TOKEN_PROGRAM_ID,
       metadataProgram: METADATA_PROGRAM_ID
     })
@@ -150,6 +156,11 @@ describe("breadhead-staking", async() => {
       program.programId
     )
 
+    const [stakeState, stateBump] = await PublicKey.findProgramAddress(
+      [provider.wallet.publicKey.toBuffer(), originalMint.toBuffer(), Buffer.from("state")],
+      program.programId
+    )
+
     const userAta = await getAssociatedTokenAddress(originalMint, provider.wallet.publicKey)
 
     const tx = await program.methods.unstake()
@@ -161,6 +172,7 @@ describe("breadhead-staking", async() => {
       masterEdition: metadataInfo[1],
       user: provider.wallet.publicKey,
       userOriginalMintTokenAccount: userAta,
+      stakeState: stakeState,
       tokenProgram: TOKEN_PROGRAM_ID,
       metadataProgram: METADATA_PROGRAM_ID
     })

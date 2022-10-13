@@ -15,6 +15,9 @@ pub const STAKE_AUTHORIZATION_SIZE: usize = 8 + std::mem::size_of::<StakeAuthori
 
 pub const PROGRAM_AUTHORITY_SEED: &str = "authority";
 
+pub const STAKE_STATE_SEED: &str = "state";
+pub const STAKE_STATE_SIZE: usize = 8 + 8 + 16 + 8 + 32;
+
 #[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
 pub enum StakeEntryKind {
@@ -55,20 +58,12 @@ pub struct StakePool {
     pub end_date: Option<i64>,
 }
 
-pub const STAKE_BOOSTER_PREFIX: &str = "stake-booster";
-pub const STAKE_BOOSTER_SIZE: usize = 8 + std::mem::size_of::<StakeBooster>() + 64;
-
 #[account]
-pub struct StakeBooster {
+pub struct StakeState {
     pub bump: u8,
-    pub stake_pool: Pubkey,
-    pub identifier: u64,
-    pub payment_amount: u64,
-    pub payment_mint: Pubkey,
-    pub payment_manager: Pubkey,
-    pub payment_recipient: Pubkey,
-    pub boost_seconds: u128,
-    pub start_time_seconds: i64,
+    pub stake_start: i64,
+    pub raising_level: u8,
+    pub token_account: Pubkey,
 }
 
 #[account]

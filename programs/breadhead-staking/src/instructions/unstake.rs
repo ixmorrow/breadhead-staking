@@ -1,6 +1,7 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
+    anchor_lang::AccountsClose,
     anchor_spl::token::{Mint, Token, TokenAccount, Revoke, revoke},
     mpl_token_metadata::{
         instruction::thaw_delegated_account,
@@ -42,6 +43,12 @@ pub struct UnstakeCtx<'info> {
         && user_original_mint_token_account.owner == user.key()
         @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        seeds = [user.key().as_ref(), original_mint.key().as_ref(), STAKE_STATE_SEED.as_bytes()],
+        bump = stake_state.bump
+    )]
+    stake_state: Account<'info, StakeState>,
 
     // programs
     token_program: Program<'info, Token>,
@@ -115,6 +122,9 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     stake_entry.cooldown_start_seconds = None;
     stake_pool.total_staked = stake_pool.total_staked.checked_sub(1).expect("Sub error");
     stake_entry.kind = StakeEntryKind::Permissionless as u8;
+
+    // close user stake state account
+    ctx.accounts.stake_state.close(ctx.accounts.user.to_account_info())?;
 
     Ok(())
 }

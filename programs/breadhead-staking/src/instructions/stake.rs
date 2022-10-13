@@ -45,6 +45,15 @@ pub struct StakeCtx<'info> {
     )]
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
 
+    #[account(
+        init,
+        seeds = [user.key().as_ref(), original_mint.key().as_ref(), STAKE_STATE_SEED.as_bytes()],
+        bump,
+        payer = user,
+        space = STAKE_STATE_SIZE
+    )]
+    stake_state: Account<'info, StakeState>,
+
     // programs
     token_program: Program<'info, Token>,
     /// CHECK: constraint verifies this is the metadata program
@@ -52,7 +61,8 @@ pub struct StakeCtx<'info> {
         metadata_program.key() == metadata_program_id
         @ ErrorCode::InvalidMetadataProgram
     )]
-    metadata_program: AccountInfo<'info>
+    metadata_program: AccountInfo<'info>,
+    system_program: Program<'info, System>
 }
 
 pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
@@ -112,6 +122,12 @@ pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
     stake_entry.last_staker = ctx.accounts.user.key();
     stake_entry.amount = stake_entry.amount.checked_add(amount).unwrap();
     stake_pool.total_staked = stake_pool.total_staked.checked_add(1).expect("Add error");
+
+    // update user stake state
+    ctx.accounts.stake_state.bump = *ctx.bumps.get("stake_state").unwrap();
+    ctx.accounts.stake_state.stake_start = Clock::get().unwrap().unix_timestamp;
+    ctx.accounts.stake_state.raising_level = 0;
+    ctx.accounts.stake_state.token_account = ctx.accounts.user_original_mint_token_account.key();
 
     Ok(())
 }
