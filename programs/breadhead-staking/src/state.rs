@@ -18,6 +18,8 @@ pub const PROGRAM_AUTHORITY_SEED: &str = "authority";
 pub const STAKE_STATE_SEED: &str = "state";
 pub const STAKE_STATE_SIZE: usize = 8 + 8 + 16 + 8 + 32 + 32 + 32;
 
+pub const REST_LEVELS: [i64; 5] = [1728000, 3456000, 5184000, 8640000, 12960000];
+
 
 #[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
@@ -63,7 +65,7 @@ pub struct StakePool {
 pub struct StakeState {
     pub bump: u8,
     pub stake_start: i64,
-    pub raising_level: u8,
+    pub resting_level: u8,
     pub token_account: Pubkey,
     pub original_mint: Pubkey,
     pub pool: Pubkey,
