@@ -16,7 +16,8 @@ pub const STAKE_AUTHORIZATION_SIZE: usize = 8 + std::mem::size_of::<StakeAuthori
 pub const PROGRAM_AUTHORITY_SEED: &str = "authority";
 
 pub const STAKE_STATE_SEED: &str = "state";
-pub const STAKE_STATE_SIZE: usize = 8 + 8 + 16 + 8 + 32;
+pub const STAKE_STATE_SIZE: usize = 8 + 8 + 16 + 8 + 32 + 32 + 32;
+
 
 #[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
@@ -64,6 +65,8 @@ pub struct StakeState {
     pub stake_start: i64,
     pub raising_level: u8,
     pub token_account: Pubkey,
+    pub original_mint: Pubkey,
+    pub pool: Pubkey,
 }
 
 #[account]

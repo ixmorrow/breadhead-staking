@@ -6,7 +6,7 @@ import { IDENTIFIER_SEED, STAKE_POOL_SEED, STAKE_ENTRY_SEED } from '../src/stake
 import { createNFTMint, createMasterEditionTxs } from '../src/stakePool/utils'
 import { getAssociatedTokenAddress, getAccount } from '@solana/spl-token'
 import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token"
-import { PROGRAM_ID as METADATA_PROGRAM_ID } from '@metaplex-foundation/mpl-token-metadata'
+import { PrimarySaleCanOnlyBeFlippedToTrueError, PROGRAM_ID as METADATA_PROGRAM_ID } from '@metaplex-foundation/mpl-token-metadata'
 import { BN } from "bn.js"
 import { assert } from "chai"
 import { token } from "@project-serum/anchor/dist/cjs/utils"
@@ -83,8 +83,6 @@ describe("breadhead-staking", async() => {
       systemProgram: SystemProgram.programId
     })
     .rpc()
-
-    console.log("Init stake pool tx: ", tx)
   })
 
   it('Create stake entry', async () => {

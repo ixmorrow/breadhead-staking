@@ -128,6 +128,8 @@ pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
     ctx.accounts.stake_state.stake_start = Clock::get().unwrap().unix_timestamp;
     ctx.accounts.stake_state.raising_level = 0;
     ctx.accounts.stake_state.token_account = ctx.accounts.user_original_mint_token_account.key();
+    ctx.accounts.stake_state.original_mint = ctx.accounts.original_mint.key();
+    ctx.accounts.stake_state.pool = ctx.accounts.stake_pool.key();
 
     Ok(())
 }
