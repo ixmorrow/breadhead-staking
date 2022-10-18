@@ -13,9 +13,9 @@ use {
 
 #[derive(Accounts)]
 pub struct UnstakeCtx<'info> {
-    #[account(mut)]
-    stake_pool: Box<Account<'info, StakePool>>,
     #[account(mut, constraint = stake_entry.pool == stake_pool.key() @ ErrorCode::InvalidStakePool)]
+    stake_pool: Box<Account<'info, StakePool>>,
+    #[account(mut, seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), get_stake_seed(original_mint.supply, user.key()).as_ref()], bump=stake_entry.bump)]
     stake_entry: Box<Account<'info, StakeEntry>>,
 
     /// CHECK: Safe this is used a program signer
@@ -38,8 +38,9 @@ pub struct UnstakeCtx<'info> {
     // user
     #[account(mut, constraint = user.key() == stake_entry.last_staker @ ErrorCode::InvalidUnstakeUser)]
     user: Signer<'info>,
-    #[account(mut, constraint =
-        user_original_mint_token_account.mint == stake_entry.original_mint
+    #[account(
+        mut,
+        constraint = user_original_mint_token_account.mint == stake_entry.original_mint
         && user_original_mint_token_account.owner == user.key()
         @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
@@ -53,8 +54,8 @@ pub struct UnstakeCtx<'info> {
     // programs
     token_program: Program<'info, Token>,
     /// CHECK: constraint verifies this is the metadata program
-    #[account(constraint =
-        metadata_program.key() == metadata_program_id
+    #[account(
+        constraint = metadata_program.key() == metadata_program_id
         @ ErrorCode::InvalidMetadataProgram
     )]
     metadata_program: AccountInfo<'info>
@@ -115,13 +116,15 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
         .checked_mul(u128::try_from(stake_entry.amount).unwrap())
         .unwrap(),
     );
+    // update state
     stake_entry.last_staker = Pubkey::default();
-    stake_entry.original_mint_claimed = false;
-    stake_entry.stake_mint_claimed = false;
-    stake_entry.amount = 0;
+    stake_entry.amount = stake_entry.amount.checked_sub(1).unwrap();
     stake_entry.cooldown_start_seconds = None;
-    stake_pool.total_staked = stake_pool.total_staked.checked_sub(1).expect("Sub error");
-    stake_entry.kind = StakeEntryKind::Permissionless as u8;
+
+    stake_pool.total_staked = stake_pool.total_staked.checked_sub(1).unwrap();
+
+    ctx.accounts.stake_state.resting_level = 0;
+    ctx.accounts.stake_state.achievment_level = Achievement::DoughBoy;
 
     // close user stake state account
     ctx.accounts.stake_state.close(ctx.accounts.user.to_account_info())?;
