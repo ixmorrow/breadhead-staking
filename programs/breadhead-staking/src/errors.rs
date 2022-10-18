@@ -61,5 +61,7 @@ pub enum ErrorCode {
     #[msg("Invalid Metadata Program")]
     InvalidMetadataProgram,
     #[msg("Invalid Master Edition account")]
-    InvalidMasterEdition
+    InvalidMasterEdition,
+    #[msg("Invalid resting level")]
+    InvalidRestingLevel
 }

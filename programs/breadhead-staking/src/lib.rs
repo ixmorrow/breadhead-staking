@@ -30,6 +30,10 @@ pub mod breadhead_staking {
         unstake::handler(ctx)
     }
 
+    pub fn calculate_reward(ctx: Context<RewardCtx>) -> Result<()> {
+        calculate_reward::handler(ctx)
+    }
+
     // pub fn update_pool(ctx: Context<UpdatePoolCtx>, ix: UpdatePoolIx) -> Result<()> {
     //     update_pool::handler(ctx, ix)
     // }

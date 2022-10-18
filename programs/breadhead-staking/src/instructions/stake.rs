@@ -7,6 +7,7 @@ use {
         ID as metadata_program_id,
         utils::is_master_edition
     },
+    anchor_safe_math::{SafeMath},
     solana_program::program::invoke_signed
 };
 
@@ -37,8 +38,9 @@ pub struct StakeCtx<'info> {
     // user
     #[account(mut)]
     user: Signer<'info>,
-    #[account(mut, constraint =
-        user_original_mint_token_account.amount > 0
+    #[account(
+        mut,
+        constraint = user_original_mint_token_account.amount > 0
         && user_original_mint_token_account.mint == stake_entry.original_mint
         && user_original_mint_token_account.owner == user.key()
         @ ErrorCode::InvalidUserOriginalMintTokenAccount
@@ -120,16 +122,18 @@ pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
     // update stake entry
     stake_entry.last_staked_at = Clock::get().unwrap().unix_timestamp;
     stake_entry.last_staker = ctx.accounts.user.key();
-    stake_entry.amount = stake_entry.amount.checked_add(amount).unwrap();
-    stake_pool.total_staked = stake_pool.total_staked.checked_add(1).expect("Add error");
+    stake_entry.amount = stake_entry.amount.checked_add(1).unwrap();
+
+    stake_pool.total_staked = stake_pool.total_staked.checked_add(1).unwrap();
 
     // update user stake state
     ctx.accounts.stake_state.bump = *ctx.bumps.get("stake_state").unwrap();
     ctx.accounts.stake_state.stake_start = Clock::get().unwrap().unix_timestamp;
-    ctx.accounts.stake_state.resting_level = 0;
     ctx.accounts.stake_state.token_account = ctx.accounts.user_original_mint_token_account.key();
     ctx.accounts.stake_state.original_mint = ctx.accounts.original_mint.key();
-    ctx.accounts.stake_state.pool = ctx.accounts.stake_pool.key();
+    ctx.accounts.stake_state.pool = stake_pool.key();
+    ctx.accounts.stake_state.resting_level = 0;
+    ctx.accounts.stake_state.achievment_level = Achievement::DoughBoy;
 
     Ok(())
 }

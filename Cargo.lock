@@ -165,6 +165,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "anchor-safe-math"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79c222ffe6c4555c473d737a0f4019952fdc945b1b877b89f774a5947bc8a7bc"
+dependencies = [
+ "anchor-lang",
+]
+
+[[package]]
 name = "anchor-spl"
 version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -337,6 +346,7 @@ name = "breadhead-staking"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "anchor-safe-math",
  "anchor-spl",
  "mpl-token-metadata",
  "solana-program",
