@@ -48,7 +48,6 @@ pub const STAKE_POOL_SIZE: usize = 8 + std::mem::size_of::<StakePool>() + 8;
 #[account]
 pub struct StakePool {
     pub bump: u8,
-    // pub identifier: u64,
     pub authority: Pubkey,
     // pub requires_collections: Vec<Pubkey>,
     pub requires_authorization: bool,

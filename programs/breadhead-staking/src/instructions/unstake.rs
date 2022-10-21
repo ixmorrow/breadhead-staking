@@ -11,56 +11,6 @@ use {
     solana_program::program::invoke_signed
 };
 
-#[derive(Accounts)]
-pub struct UnstakeCtx<'info> {
-    #[account(mut, constraint = stake_entry.pool == stake_pool.key() @ ErrorCode::InvalidStakePool)]
-    stake_pool: Box<Account<'info, StakePool>>,
-    #[account(mut, seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), get_stake_seed(original_mint.supply, user.key()).as_ref()], bump=stake_entry.bump)]
-    stake_entry: Box<Account<'info, StakeEntry>>,
-
-    /// CHECK: Safe this is used a program signer
-    #[account(
-        mut,
-        seeds = [PROGRAM_AUTHORITY_SEED.as_bytes()],
-        bump
-    )]
-    program_authority: AccountInfo<'info>,
-    original_mint: Box<Account<'info, Mint>>,
-
-    /// CHECK: constraint verifies this is a master edition
-    #[account(constraint = 
-        is_master_edition(
-            &master_edition, original_mint.decimals, original_mint.supply) == true
-            @ ErrorCode::InvalidMasterEdition
-        )]
-    master_edition: AccountInfo<'info>,
-
-    // user
-    #[account(mut, constraint = user.key() == stake_entry.last_staker @ ErrorCode::InvalidUnstakeUser)]
-    user: Signer<'info>,
-    #[account(
-        mut,
-        constraint = user_original_mint_token_account.mint == stake_entry.original_mint
-        && user_original_mint_token_account.owner == user.key()
-        @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
-    user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(
-        mut,
-        seeds = [user.key().as_ref(), original_mint.key().as_ref(), STAKE_STATE_SEED.as_bytes()],
-        bump = stake_state.bump
-    )]
-    stake_state: Account<'info, StakeState>,
-
-    // programs
-    token_program: Program<'info, Token>,
-    /// CHECK: constraint verifies this is the metadata program
-    #[account(
-        constraint = metadata_program.key() == metadata_program_id
-        @ ErrorCode::InvalidMetadataProgram
-    )]
-    metadata_program: AccountInfo<'info>
-}
-
 pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
 
     if ctx.accounts.stake_pool.min_stake_seconds.is_some()
@@ -130,6 +80,56 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     ctx.accounts.stake_state.close(ctx.accounts.user.to_account_info())?;
 
     Ok(())
+}
+
+#[derive(Accounts)]
+pub struct UnstakeCtx<'info> {
+    #[account(mut, constraint = stake_entry.pool == stake_pool.key() @ ErrorCode::InvalidStakePool)]
+    pub stake_pool: Box<Account<'info, StakePool>>,
+    #[account(mut, seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), get_stake_seed(original_mint.supply, user.key()).as_ref()], bump=stake_entry.bump)]
+    pub stake_entry: Box<Account<'info, StakeEntry>>,
+
+    /// CHECK: Safe this is used a program signer
+    #[account(
+        mut,
+        seeds = [PROGRAM_AUTHORITY_SEED.as_bytes()],
+        bump
+    )]
+    pub program_authority: AccountInfo<'info>,
+    pub original_mint: Box<Account<'info, Mint>>,
+
+    /// CHECK: constraint verifies this is a master edition
+    #[account(constraint = 
+        is_master_edition(
+            &master_edition, original_mint.decimals, original_mint.supply) == true
+            @ ErrorCode::InvalidMasterEdition
+        )]
+        pub master_edition: AccountInfo<'info>,
+
+    // user
+    #[account(mut, constraint = user.key() == stake_entry.last_staker @ ErrorCode::InvalidUnstakeUser)]
+    pub user: Signer<'info>,
+    #[account(
+        mut,
+        constraint = user_original_mint_token_account.mint == stake_entry.original_mint
+        && user_original_mint_token_account.owner == user.key()
+        @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
+        pub user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        seeds = [user.key().as_ref(), original_mint.key().as_ref(), STAKE_STATE_SEED.as_bytes()],
+        bump = stake_state.bump
+    )]
+    pub stake_state: Account<'info, StakeState>,
+
+    // programs
+    pub token_program: Program<'info, Token>,
+    /// CHECK: constraint verifies this is the metadata program
+    #[account(
+        constraint = metadata_program.key() == metadata_program_id
+        @ ErrorCode::InvalidMetadataProgram
+    )]
+    pub metadata_program: AccountInfo<'info>
 }
 
 impl<'info> UnstakeCtx <'info> {

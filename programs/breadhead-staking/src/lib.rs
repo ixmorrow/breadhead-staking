@@ -10,10 +10,6 @@ declare_id!("FpEMdUwx8GAE4kc5BXgP5pKwAv7FstakVU6JLRnT5kmH");
 pub mod breadhead_staking {
     use super::*;
 
-    pub fn init_identifier(ctx: Context<InitIdentifierCtx>) -> Result<()> {
-        init_identifier::handler(ctx)
-    }
-
     pub fn init_pool(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
         init_pool::handler(ctx, ix)
     }

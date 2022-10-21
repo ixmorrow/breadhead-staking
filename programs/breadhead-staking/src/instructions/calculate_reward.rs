@@ -4,33 +4,6 @@ use {
     anchor_spl::token::{Mint, TokenAccount},
 };
 
-#[derive(Accounts)]
-pub struct RewardCtx<'info> {
-    #[account(mut, seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), get_stake_seed(original_mint.supply, user.key()).as_ref()], bump=stake_entry.bump)]
-    stake_entry: Box<Account<'info, StakeEntry>>,
-
-    // user
-    #[account(mut)]
-    user: Signer<'info>,
-    #[account(
-        mut,
-        constraint = user_original_mint_token_account.amount > 0
-        && user_original_mint_token_account.mint == stake_entry.original_mint
-        && user_original_mint_token_account.owner == user.key()
-        @ ErrorCode::InvalidUserOriginalMintTokenAccount
-    )]
-    user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
-    original_mint: Box<Account<'info, Mint>>,
-    #[account(
-        mut,
-        seeds = [user.key().as_ref(), original_mint.key().as_ref(), STAKE_STATE_SEED.as_bytes()],
-        bump = stake_state.bump,
-        constraint = stake_state.token_account == user_original_mint_token_account.key()
-        @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount,
-    )]
-    stake_state: Account<'info, StakeState>,
-}
-
 pub fn handler(ctx: Context<RewardCtx>) -> Result<()> {
     let user_state = &mut ctx.accounts.stake_state;
 
@@ -52,4 +25,31 @@ pub fn handler(ctx: Context<RewardCtx>) -> Result<()> {
     msg!("user achievement level: {:?}", user_state.achievment_level);
 
     Ok(())
+}
+
+#[derive(Accounts)]
+pub struct RewardCtx<'info> {
+    #[account(mut, seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), get_stake_seed(original_mint.supply, user.key()).as_ref()], bump=stake_entry.bump)]
+    pub stake_entry: Box<Account<'info, StakeEntry>>,
+
+    // user
+    #[account(mut)]
+    pub user: Signer<'info>,
+    #[account(
+        mut,
+        constraint = user_original_mint_token_account.amount > 0
+        && user_original_mint_token_account.mint == stake_entry.original_mint
+        && user_original_mint_token_account.owner == user.key()
+        @ ErrorCode::InvalidUserOriginalMintTokenAccount
+    )]
+    pub user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
+    pub original_mint: Box<Account<'info, Mint>>,
+    #[account(
+        mut,
+        seeds = [user.key().as_ref(), original_mint.key().as_ref(), STAKE_STATE_SEED.as_bytes()],
+        bump = stake_state.bump,
+        constraint = stake_state.token_account == user_original_mint_token_account.key()
+        @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount,
+    )]
+    pub stake_state: Account<'info, StakeState>,
 }

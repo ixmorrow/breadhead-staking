@@ -21,21 +21,16 @@ pub struct InitPoolCtx<'info> {
         seeds = [STAKE_POOL_PREFIX.as_bytes(), original_mint.key().as_ref()],
         bump
     )]
-    stake_pool: Account<'info, StakePool>,
+    pub stake_pool: Account<'info, StakePool>,
     pub original_mint: Account<'info, Mint>,
-    // #[account(mut)]
-    // identifier: Account<'info, Identifier>,
-
     #[account(mut)]
-    payer: Signer<'info>,
-    system_program: Program<'info, System>,
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     let stake_pool = &mut ctx.accounts.stake_pool;
-    // let identifier = &mut ctx.accounts.identifier;
     stake_pool.bump = *ctx.bumps.get("stake_pool").unwrap();
-    // stake_pool.identifier = identifier.count;
     // stake_pool.requires_collections = ix.requires_collections;
     stake_pool.requires_authorization = ix.requires_authorization;
     stake_pool.authority = ix.authority;
@@ -45,7 +40,5 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     stake_pool.end_date = ix.end_date;
     stake_pool.total_staked = 0;
 
-    // let identifier = &mut ctx.accounts.identifier;
-    // identifier.count += 1;
     Ok(())
 }

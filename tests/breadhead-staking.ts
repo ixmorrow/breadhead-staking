@@ -123,7 +123,7 @@ describe("breadhead-staking", async() => {
     })
     .rpc()
 
-    delay(10000)
+    await connection.confirmTransaction(tx)
 
     const tokenAccount = await getAccount(provider.connection, userAta)
     assert(tokenAccount.isFrozen, 'token account is not frozen')
