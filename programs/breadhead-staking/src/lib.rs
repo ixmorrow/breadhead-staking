@@ -4,7 +4,7 @@ pub mod state;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("44Btk1Non5AwpTVJc4JNyniofmyQX33cHN1sWtn5w7zC");
+declare_id!("FpEMdUwx8GAE4kc5BXgP5pKwAv7FstakVU6JLRnT5kmH");
 
 #[program]
 pub mod breadhead_staking {
