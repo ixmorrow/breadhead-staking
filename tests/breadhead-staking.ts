@@ -3,7 +3,7 @@ import { Program } from "@project-serum/anchor"
 import { PublicKey, SystemProgram, Keypair } from '@solana/web3.js'
 import { BreadheadStaking } from "../target/types/breadhead_staking"
 import { IDENTIFIER_SEED, STAKE_POOL_SEED, STAKE_ENTRY_SEED } from '../src/stakePool/const'
-import { createNFTMint, createMasterEditionTxs, delay } from '../src/stakePool/utils'
+import { createNFTMint, createMasterEditionTxs, delay, safeAirdrop } from '../src/stakePool/utils'
 import { getAssociatedTokenAddress, getAccount } from '@solana/spl-token'
 import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token"
 import { PrimarySaleCanOnlyBeFlippedToTrueError, PROGRAM_ID as METADATA_PROGRAM_ID } from '@metaplex-foundation/mpl-token-metadata'
@@ -17,6 +17,7 @@ describe("breadhead-staking", async() => {
 
   const program = anchor.workspace.BreadheadStaking as Program<BreadheadStaking>
   const provider = anchor.AnchorProvider.env()
+  const connection = provider.connection
 
   //const [identifier, identifierBump] = await PublicKey.findProgramAddress([Buffer.from(IDENTIFIER_SEED)], program.programId)
   let stakePool: PublicKey = null
@@ -26,6 +27,8 @@ describe("breadhead-staking", async() => {
   const nftAuthority = Keypair.generate()
 
   it("Create nft", async () => {
+      await safeAirdrop(provider.wallet.publicKey, connection)
+
      // create original mint
       originalMint = await createNFTMint(
         provider.connection,
@@ -132,9 +135,6 @@ describe("breadhead-staking", async() => {
 
     const stakeEntryAcct = await program.account.stakeEntry.fetch(stakeEntry)
     console.log("Stake entry amt: ", stakeEntryAcct.amount.toString())
-
-    const userStakeState = await program.account.stakeState.fetch(stakeState)
-    console.log(userStakeState.achievmentLevel)
   })
 
   it('Calculate reward level', async () => {
@@ -161,49 +161,51 @@ describe("breadhead-staking", async() => {
     })
     .rpc()
 
-    delay(10000)
+    await connection.confirmTransaction(tx)
 
     const userState = await program.account.stakeState.fetch(stakeState, "confirmed")
     console.log("Resting level: ", userState.restingLevel.toString())
     console.log("Achievement level: ", userState.achievmentLevel)
   })
 
-  // it('Unstake nft', async () => {
-  //   const [stakeEntry, entryBump] = await PublicKey.findProgramAddress(
-  //     [Buffer.from(STAKE_ENTRY_SEED), stakePool.toBytes(), originalMint.toBuffer(), PublicKey.default.toBuffer()],
-  //     program.programId
-  //   )
+  it('Unstake nft', async () => {
+    const [stakeEntry, entryBump] = await PublicKey.findProgramAddress(
+      [Buffer.from(STAKE_ENTRY_SEED), stakePool.toBytes(), originalMint.toBuffer(), PublicKey.default.toBuffer()],
+      program.programId
+    )
 
-  //   const [programAuthority, authBump] = await PublicKey.findProgramAddress(
-  //     [Buffer.from("authority")],
-  //     program.programId
-  //   )
+    const [programAuthority, authBump] = await PublicKey.findProgramAddress(
+      [Buffer.from("authority")],
+      program.programId
+    )
 
-  //   const [stakeState, stateBump] = await PublicKey.findProgramAddress(
-  //     [provider.wallet.publicKey.toBuffer(), originalMint.toBuffer(), Buffer.from("state")],
-  //     program.programId
-  //   )
+    const [stakeState, stateBump] = await PublicKey.findProgramAddress(
+      [provider.wallet.publicKey.toBuffer(), originalMint.toBuffer(), Buffer.from("state")],
+      program.programId
+    )
 
-  //   const userAta = await getAssociatedTokenAddress(originalMint, provider.wallet.publicKey)
+    const userAta = await getAssociatedTokenAddress(originalMint, provider.wallet.publicKey)
 
-  //   const tx = await program.methods.unstake()
-  //   .accounts({
-  //     stakeEntry: stakeEntry,
-  //     stakePool: stakePool,
-  //     programAuthority: programAuthority,
-  //     originalMint: originalMint,
-  //     masterEdition: metadataInfo[1],
-  //     user: provider.wallet.publicKey,
-  //     userOriginalMintTokenAccount: userAta,
-  //     stakeState: stakeState,
-  //     tokenProgram: TOKEN_PROGRAM_ID,
-  //     metadataProgram: METADATA_PROGRAM_ID
-  //   })
-  //   .rpc()
+    const tx = await program.methods.unstake()
+    .accounts({
+      stakeEntry: stakeEntry,
+      stakePool: stakePool,
+      programAuthority: programAuthority,
+      originalMint: originalMint,
+      masterEdition: metadataInfo[1],
+      user: provider.wallet.publicKey,
+      userOriginalMintTokenAccount: userAta,
+      stakeState: stakeState,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      metadataProgram: METADATA_PROGRAM_ID
+    })
+    .rpc()
 
-  //   const tokenAccount = await getAccount(provider.connection, userAta)
-  //   assert(!tokenAccount.isFrozen, 'token account is still frozen')
-  //   assert(tokenAccount.delegate == null, 'delegate does not match')
-  //   assert(tokenAccount.owner.toBase58() == provider.wallet.publicKey.toBase58(), 'token account owner does not match')
-  // })
+    await connection.confirmTransaction(tx)
+
+    const tokenAccount = await getAccount(provider.connection, userAta)
+    assert(!tokenAccount.isFrozen, 'token account is still frozen')
+    assert(tokenAccount.delegate == null, 'delegate does not match')
+    assert(tokenAccount.owner.toBase58() == provider.wallet.publicKey.toBase58(), 'token account owner does not match')
+  })
 })

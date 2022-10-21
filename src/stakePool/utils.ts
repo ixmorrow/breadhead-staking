@@ -168,3 +168,15 @@ export const createMasterEditionTxs = async (
 export function delay(ms: number) {
     return new Promise( resolve => setTimeout(resolve, ms) );
 }
+
+export async function safeAirdrop(address: web3.PublicKey, connection: web3.Connection) {
+    const acctInfo = await connection.getAccountInfo(address, "confirmed")
+
+    if (acctInfo == null || acctInfo.lamports < web3.LAMPORTS_PER_SOL) {
+        let signature = await connection.requestAirdrop(
+            address,
+            web3.LAMPORTS_PER_SOL
+        )
+        await connection.confirmTransaction(signature)
+    }
+}
