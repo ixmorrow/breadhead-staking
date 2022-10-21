@@ -54,12 +54,8 @@ export const createNFTMint = async (
     freezeAuthority: web3.PublicKey = payer.publicKey,
     mintAuthority: web3.PublicKey = payer.publicKey,
     ): Promise<web3.PublicKey> => {
-    const fromAirdropSignature = await connection.requestAirdrop(
-        payer.publicKey,
-        web3.LAMPORTS_PER_SOL
-    )
-    await connection.confirmTransaction(fromAirdropSignature)
-
+    await safeAirdrop(payer.publicKey, connection)
+    
     const mint = await createMint(
         connection,
         payer,

@@ -10,6 +10,7 @@ import { PrimarySaleCanOnlyBeFlippedToTrueError, PROGRAM_ID as METADATA_PROGRAM_
 import { BN } from "bn.js"
 import { assert } from "chai"
 import { token } from "@project-serum/anchor/dist/cjs/utils"
+import { chiefBreadHead } from './test-keypairs/test-keypairs'
 
 describe("breadhead-staking", async() => {
   // Configure the client to use the local cluster.
@@ -27,7 +28,7 @@ describe("breadhead-staking", async() => {
   const nftAuthority = Keypair.generate()
 
   it("Create nft", async () => {
-      await safeAirdrop(provider.wallet.publicKey, connection)
+      await safeAirdrop(chiefBreadHead.publicKey, connection)
 
      // create original mint
       originalMint = await createNFTMint(
@@ -45,7 +46,6 @@ describe("breadhead-staking", async() => {
   })
 
   it("Initialize stake pool", async () => {
-    // let identifierAcct = await program.account.identifier.fetch(identifier)
     const [stakePoolId, stakePoolBump] = await PublicKey.findProgramAddress(
       [Buffer.from(STAKE_POOL_SEED), originalMint.toBuffer()],
       program.programId
@@ -55,7 +55,7 @@ describe("breadhead-staking", async() => {
     const tx = await program.methods.initPool({
       requiresCollections: [],
       requiresAuthorization: false,
-      authority: provider.wallet.publicKey,
+      authority: chiefBreadHead.publicKey,
       resetOnStake: false,
       cooldownSeconds: null,
       minStakeSeconds: null,
@@ -64,10 +64,10 @@ describe("breadhead-staking", async() => {
     .accounts({
       stakePool: stakePool,
       originalMint: originalMint,
-      // identifier: identifier,
-      payer: provider.wallet.publicKey,
+      authority: chiefBreadHead.publicKey,
       systemProgram: SystemProgram.programId
     })
+    .signers([chiefBreadHead])
     .rpc()
   })
 
@@ -83,9 +83,10 @@ describe("breadhead-staking", async() => {
       stakePool: stakePool,
       originalMint: originalMint,
       originalMintMetadata: metadataInfo[0],
-      payer: provider.wallet.publicKey,
+      payer: chiefBreadHead.publicKey,
       systemProgram: SystemProgram.programId
     })
+    .signers([chiefBreadHead])
     .rpc()
 
   })

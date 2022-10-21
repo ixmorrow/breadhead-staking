@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use solana_program::{pubkey, pubkey::Pubkey};
 
 pub const STAKE_ENTRY_PREFIX: &str = "stake-entry";
 pub const STAKE_ENTRY_SIZE: usize = 8 + std::mem::size_of::<StakeEntry>() + 8;
@@ -12,6 +13,8 @@ pub const STAKE_AUTHORIZATION_PREFIX: &str = "stake-authorization";
 pub const STAKE_AUTHORIZATION_SIZE: usize = 8 + std::mem::size_of::<StakeAuthorizationRecord>() + 8;
 
 pub const PROGRAM_AUTHORITY_SEED: &str = "authority";
+// sole authority that can create and/or update staking pools
+pub static CHIEF_BREADHEAD: Pubkey = pubkey!("F1ePX4vnFQjrK7XX9rhSRnriPf4V9hh1Cz1nbNGGrkTJ");
 
 pub const STAKE_STATE_SEED: &str = "state";
 
