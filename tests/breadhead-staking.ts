@@ -203,9 +203,16 @@ describe("breadhead-staking", async() => {
 
     await connection.confirmTransaction(tx)
 
+
     const tokenAccount = await getAccount(provider.connection, userAta)
     assert(!tokenAccount.isFrozen, 'token account is still frozen')
     assert(tokenAccount.delegate == null, 'delegate does not match')
     assert(tokenAccount.owner.toBase58() == provider.wallet.publicKey.toBase58(), 'token account owner does not match')
+
+    const poolAcct = await program.account.stakePool.fetch(stakePool, "confirmed")
+    console.log("Total staked:", poolAcct.totalStaked.toString())
+
+    const stakeEntryAcct = await program.account.stakeEntry.fetch(stakeEntry)
+    console.log("Stake entry amt: ", stakeEntryAcct.amount.toString())
   })
 })
